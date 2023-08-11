@@ -6155,6 +6155,7 @@ done:
 							JANUS_SDP_OA_DIRECTION, JANUS_SDP_SENDONLY,
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_MID, janus_rtp_extension_id(JANUS_RTP_EXTMAP_MID),
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_ABS_SEND_TIME, janus_rtp_extension_id(JANUS_RTP_EXTMAP_ABS_SEND_TIME),
+							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_ABS_CAPTURE_TIME, janus_rtp_extension_id(JANUS_RTP_EXTMAP_ABS_CAPTURE_TIME),
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_PLAYOUT_DELAY,
 								(session->playoutdelay_ext ? janus_rtp_extension_id(JANUS_RTP_EXTMAP_PLAYOUT_DELAY) : 0),
 							JANUS_SDP_OA_DONE);
@@ -6171,6 +6172,7 @@ done:
 							JANUS_SDP_OA_DIRECTION, JANUS_SDP_SENDONLY,
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_MID, janus_rtp_extension_id(JANUS_RTP_EXTMAP_MID),
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_ABS_SEND_TIME, janus_rtp_extension_id(JANUS_RTP_EXTMAP_ABS_SEND_TIME),
+							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_ABS_CAPTURE_TIME, janus_rtp_extension_id(JANUS_RTP_EXTMAP_ABS_CAPTURE_TIME),
 							JANUS_SDP_OA_EXTENSION, JANUS_RTP_EXTMAP_PLAYOUT_DELAY,
 								(session->playoutdelay_ext ? janus_rtp_extension_id(JANUS_RTP_EXTMAP_PLAYOUT_DELAY) : 0),
 							JANUS_SDP_OA_DONE);
@@ -6449,6 +6451,7 @@ done:
 							JANUS_SDP_OA_DIRECTION, JANUS_SDP_SENDONLY,
 							JANUS_SDP_OA_ACCEPT_EXTMAP, JANUS_RTP_EXTMAP_MID,
 							JANUS_SDP_OA_ACCEPT_EXTMAP, JANUS_RTP_EXTMAP_ABS_SEND_TIME,
+							JANUS_SDP_OA_ACCEPT_EXTMAP, JANUS_RTP_EXTMAP_ABS_CAPTURE_TIME,
 							JANUS_SDP_OA_ACCEPT_EXTMAP, JANUS_RTP_EXTMAP_PLAYOUT_DELAY,
 							JANUS_SDP_OA_DONE);
 						/* Done */
@@ -10163,6 +10166,10 @@ static void janus_streaming_relay_rtp_packet(gpointer data, gpointer user_data) 
 					packet->data->type = s->pt;
 				janus_plugin_rtp rtp = { .mindex = s->mindex, .video = packet->is_video, .buffer = (char *)packet->data, .length = packet->length };
 				janus_plugin_rtp_extensions_reset(&rtp.extensions);
+				uint64_t abs_ts = 0;
+				if(janus_rtp_header_extension_parse_abs_capture_time(packet->data, packet->length, 0x1, &abs_ts) == 0) {
+					rtp.extensions.abs_capture_ts = abs_ts;
+				}
 				if(s->min_delay > -1 && s->max_delay > -1) {
 					rtp.extensions.min_delay = s->min_delay;
 					rtp.extensions.max_delay = s->max_delay;
@@ -10238,6 +10245,10 @@ static void janus_streaming_relay_rtp_packet(gpointer data, gpointer user_data) 
 				/* Send the packet */
 				janus_plugin_rtp rtp = { .mindex = s->mindex, .video = packet->is_video, .buffer = (char *)packet->data, .length = packet->length };
 				janus_plugin_rtp_extensions_reset(&rtp.extensions);
+				uint64_t abs_ts = 0;
+				if(janus_rtp_header_extension_parse_abs_capture_time(packet->data, packet->length, 0x1, &abs_ts) == 0) {
+					rtp.extensions.abs_capture_ts = abs_ts;
+				}
 				if(s->min_delay > -1 && s->max_delay > -1) {
 					rtp.extensions.min_delay = s->min_delay;
 					rtp.extensions.max_delay = s->max_delay;
@@ -10259,6 +10270,10 @@ static void janus_streaming_relay_rtp_packet(gpointer data, gpointer user_data) 
 					packet->data->type = s->pt;
 				janus_plugin_rtp rtp = { .mindex = s->mindex, .video = packet->is_video, .buffer = (char *)packet->data, .length = packet->length };
 				janus_plugin_rtp_extensions_reset(&rtp.extensions);
+				uint64_t abs_ts = 0;
+				if(janus_rtp_header_extension_parse_abs_capture_time(packet->data, packet->length, 0x1, &abs_ts) == 0) {
+					rtp.extensions.abs_capture_ts = abs_ts;
+				}
 				if(s->min_delay > -1 && s->max_delay > -1) {
 					rtp.extensions.min_delay = s->min_delay;
 					rtp.extensions.max_delay = s->max_delay;
@@ -10277,6 +10292,10 @@ static void janus_streaming_relay_rtp_packet(gpointer data, gpointer user_data) 
 				packet->data->type = s->pt;
 			janus_plugin_rtp rtp = { .mindex = s->mindex, .video = packet->is_video, .buffer = (char *)packet->data, .length = packet->length };
 			janus_plugin_rtp_extensions_reset(&rtp.extensions);
+			uint64_t abs_ts = 0;
+			if(janus_rtp_header_extension_parse_abs_capture_time(packet->data, packet->length, 0x1, &abs_ts) == 0) {
+				rtp.extensions.abs_capture_ts = abs_ts;
+			}
 			if(gateway != NULL)
 				gateway->relay_rtp(session->handle, &rtp);
 			/* Restore the timestamp and sequence number to what the video source set them to */
